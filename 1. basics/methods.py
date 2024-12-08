@@ -40,5 +40,21 @@ ones.dtype
 # Створює масив від якогось до якогось числа з вказаними кроками через step
 one_to_ten = torch.arange(start=1,end=10,step=1)
 
+# Тензори можна додавати,віднімати,множити та ділити
+sum = t+ones
+multiply = t * torch.tensor([[2,4,6],[4,2,1]])
+divide = t / torch.tensor([[2,4,6],[4,2,1]])
+subtraction = t - torch.tensor([[2,4,6],[4,2,1]])
 
 
+# Дозволяє перемножати матриці, https://www.mathsisfun.com/algebra/matrix-multiplying.html
+torch.matmul(multiply,torch.tensor([[2,2],[2,4],[7,5]]))
+# @ це оператор для множення матриць
+multiply @ torch.tensor([[2,2],[2,4],[7,5]])
+
+(3,2) @ (3,2) # НЕ буде працювати
+(2,3) @ (3,2) # буде працювати
+(3,5) @ (5,4) # буде працювати
+
+# Коротка версія matmul
+torch.mm()
