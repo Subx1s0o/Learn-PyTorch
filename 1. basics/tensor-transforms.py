@@ -29,3 +29,7 @@ squeeze_tensor = torch.rand([3,1,3,1])
 # Unsqueeze робить усе навпаки, воно додає додаткову дименцію в задане положення, за замовчуванням 0 індекс
 torch.squeeze(squeeze_tensor,dim=3)
 torch.unsqueeze(squeeze_tensor,dim=0)
+
+
+# Міняє місцями дименції, це вигляд (view) він має одну і ту ж памʼять з оригіналом
+torch.permute(x,(1,2,0))
