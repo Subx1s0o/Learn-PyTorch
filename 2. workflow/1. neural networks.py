@@ -3,7 +3,7 @@ from torch import nn
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Задаємо значення для ваги (weight) та зсуву (bias)
+# Задаємо ВІДОМЕ значення для ваги (weight) та зсуву (bias)
 weight = 0.7   # Вага, яку модель буде навчатися знаходити
 bias = 0.3     # Зсув, який модель також буде навчатися визначати
 
@@ -51,3 +51,25 @@ def plot_predictions(train_data=X_train, train_labels=y_train, test_data=X_test,
 
     # Відображаємо графік
     plt.show()  # Виводимо графік на екран
+
+
+class LinearRegressionModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Ініціалізуємо параметр "weights" (вага) випадковим значенням
+        # nn.Parameter дозволяє PyTorch відслідковувати цей параметр та оптимізувати його під час тренування
+        self.weight = nn.Parameter(torch.randn(1, requires_grad=True, dtype=torch.float))
+
+        # - torch.randn(1) генерує випадкове значення з нормального розподілу
+        # - requires_grad=True означає, що PyTorch має обчислювати градієнт цього параметра під час тренування
+        # - dtype=torch.float вказує на тип даних 
+
+        # Ініціалізуємо параметр "bias" (зсув) випадковим значенням
+        self.bias = nn.Parameter(torch.randn(1, requires_grad=True, dtype=torch.float))
+
+        # - Аналогічно до self.weights, цей параметр має бути оптимізований під час тренування
+        # - Використовуємо torch.randn(1) для випадкової ініціалізації
+        # - Параметр має requires_grad=True для обчислення градієнта
+
+        def forward(self,x: torch.Tensor) -> torch.Tensor:
+            return self.weight * x + self.bias # формула лінійної регресії
