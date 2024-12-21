@@ -7,14 +7,14 @@ n_samples = 1000
 X, y = make_circles(n_samples=n_samples, noise=0.03, random_state=42)
 
 
-plt.scatter(x=X[:, 0],  
-            y=X[:, 1],  
-            c=y,       
-            cmap=plt.cm.RdYlBu)
-plt.xlabel("Feature 1")
-plt.ylabel("Feature 2")
-plt.title("Scatter plot of make_circles dataset")
-plt.show()
+# plt.scatter(x=X[:, 0],  
+#             y=X[:, 1],  
+#             c=y,       
+#             cmap=plt.cm.RdYlBu)
+# plt.xlabel("Feature 1")
+# plt.ylabel("Feature 2")
+# plt.title("Scatter plot of make_circles dataset")
+# plt.show()
 
 X = torch.from_numpy(X).type(torch.float)
 y = torch.from_numpy(y).type(torch.float)
