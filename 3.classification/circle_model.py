@@ -1,12 +1,10 @@
 import torch
 from torch import nn
-from dataset import X_test, X_train, y_test, y_train  # Імпорт даних для тренування та тестування
+from dataset import X_test, X_train, y_test, y_train, accuracy_fn  # Імпорт даних для тренування та тестування
 import requests
 from pathlib import Path  # Для роботи з шляхами до файлів
 from matplotlib import pyplot as plt  # Для візуалізації результатів
-
-# Визначення пристрою (GPU або CPU)
-device = "mps" if torch.mps.is_available() else "cpu"  # Якщо є підтримка Metal API для GPU на Mac, то використовуємо GPU, інакше CPU
+from device import device
 
 # Опис моделі (нейронна мережа з двома шарами)
 model_0 = nn.Sequential(
@@ -14,18 +12,13 @@ model_0 = nn.Sequential(
     nn.Linear(in_features=5, out_features=1)   # Другий шар з 5 вхідними та 1 вихідним нейроном
 ).to(device)  # Переміщення моделі на вибраний пристрій (GPU або CPU)
 
-# Функція для обчислення точності
-def accuracy_fn(y_true, y_pred):
-    correct = torch.eq(y_true, y_pred).sum().item()  # Підрахунок правильних прогнозів
-    acc = (correct / len(y_pred)) * 100  # Обчислення точності у відсотках
-    return acc
 
 # Встановлюємо фіксовані значення для генераторів випадкових чисел (для відтворюваності)
 torch.manual_seed(42)
 torch.mps.manual_seed(42)
 
 # Кількість епох для тренування
-epochs = 1000
+epochs = 100
 
 #Ініціалізуємо оптимайзер Градієнтний спуск
 optimizer = torch.optim.SGD(params=model_0.parameters(), lr=0.1)
