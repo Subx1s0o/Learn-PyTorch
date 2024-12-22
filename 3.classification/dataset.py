@@ -1,8 +1,9 @@
 
-from sklearn.datasets import make_circles  # Для створення датасету з кругами
+from sklearn.datasets import make_circles, make_blobs  # Для створення датасету
 import matplotlib.pyplot as plt  # Для побудови графіків
 import torch  # Для роботи з PyTorch
 from sklearn.model_selection import train_test_split  # Для розподілу даних на тренувальний та тестовий набори
+from device import device
 
 # Генерація даних з кругами
 n_samples = 1000  # Кількість зразків (точок) у датасеті
@@ -29,3 +30,22 @@ def accuracy_fn(y_true, y_pred):
     correct = torch.eq(y_true, y_pred).sum().item()  # Підрахунок правильних прогнозів
     acc = (correct / len(y_pred)) * 100  # Обчислення точності у відсотках
     return acc
+
+
+#-----------------------------------------------------------------------------------
+
+NUM_CLASSES = 4
+NUM_FEATURES = 2
+RANDOM_SEED = 42
+
+X_blob, y_blob = make_blobs(n_samples=1000,n_features=NUM_FEATURES,centers=NUM_CLASSES, random_state=RANDOM_SEED, cluster_std=1.2)
+
+X_blob = torch.from_numpy(X_blob).type(torch.float)
+y_blob = torch.from_numpy(y_blob).type(torch.float)
+
+X_blob_train, X_blob_test, y_blob_train, y_blob_test = train_test_split(X_blob,y_blob, test_size=0.2, random_state=RANDOM_SEED)
+
+
+# plt.figure(figsize=(10,7))
+# plt.scatter(X_blob[:,0], X_blob[:,1],c=y_blob,cmap=plt.cm.RdYlBu)
+# plt.show()
