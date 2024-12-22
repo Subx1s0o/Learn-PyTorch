@@ -30,7 +30,7 @@ X_train_regression, y_train_regression = X_train_regression.to(device), y_train_
 X_test_regression, y_test_regression = X_test_regression.to(device), y_test_regression.to(device)
 
 # Тренування моделі регресії
-epochs = 1000
+epochs = 300
 for epoch in range(epochs):
     model_2.train()  # Режим тренування
     y_pred = model_2(X_train_regression)  # Прогнози для тренувальних даних
