@@ -5,20 +5,28 @@ from dataset import X_test, X_train, y_test, y_train, accuracy_fn
 from matplotlib import pyplot as plt
 from helper_function import plot_decision_boundary
 
-# === Модель 2: Покращена класифікаційна модель ===
-class CircleModelV1(nn.Module):
+# === Модель 3: Покращена класифікаційна модель з нелійнійними функціями ===
+class CircleModelV2(nn.Module):
     def __init__(self):
         super().__init__()
         self.layer_1 = nn.Linear(in_features=2, out_features=10)  # Перший лінійний шар
         self.layer_2 = nn.Linear(in_features=10, out_features=10)  # Другий лінійний шар
         self.layer_3 = nn.Linear(in_features=10, out_features=1)  # Третій лінійний шар
+        self.relu = nn.ReLU() # Не лінійна активаційна функція
 
     def forward(self, x):
         # Прямий прохід через шари моделі
-        return self.layer_3(self.layer_2(self.layer_1(x)))
+        layer_1_output = self.layer_1(x)
+        relu_1_output = self.relu(layer_1_output)
+
+        layer_2_output = self.layer_2(relu_1_output)
+        relu_2_output = self.relu(layer_2_output)
+
+        final_output = self.layer_3(relu_2_output)
+        return final_output
 
 # Ініціалізація моделі та оптимізатора
-model = CircleModelV1().to(device)
+model = CircleModelV2().to(device)
 loss_fn = nn.BCEWithLogitsLoss()  # Функція втрат для класифікації
 optimizer = torch.optim.SGD(params=model.parameters(), lr=0.1)  # Оптимізатор
 
@@ -33,7 +41,7 @@ torch.manual_seed(42)
 torch.mps.manual_seed(42)
 
 # Тренування моделі 2
-epochs = 1000
+epochs = 2000
 for epoch in range(epochs):
     model.train()  # Режим тренування
     y_logits = model(X_train).squeeze()  # Логіти (сирі виходи моделі)
@@ -70,5 +78,6 @@ plt.show()
 
 
 # === Висновок ===
-# Покращена класифікаційна модель із трьома лінійними шарами була протестована на задачі класифікації.
-# Незважаючи на збільшення кількості параметрів моделі, якість класифікації суттєво не покращилася.
+# Додавання нелінійної функції активації (ReLU) дозволило моделі побудувати нелінійну межу рішень, 
+# що забезпечило успішну класифікацію кругів. Модель чітко розділила класи, досягнувши високої точності 
+# як на тренувальних, так і на тестових даних.
