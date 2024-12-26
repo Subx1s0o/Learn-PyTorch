@@ -1,6 +1,5 @@
 from torch import nn
 import torch
-import torch.utils.data.dataloader
 from data import class_names,train_dataloader, test_dataloader
 from helper_function import accuracy_fn
 from tqdm.auto import tqdm
