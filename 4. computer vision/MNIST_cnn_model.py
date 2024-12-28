@@ -1,12 +1,11 @@
-import torch
 import torch.nn as nn
-from data import class_names, train_dataloader, test_dataloader
-from helps_model import train_and_test_model, eval_model
+
 
 class MNISTModelV2(nn.Module):
     """
     Конволюційна нейронна мережа (CNN) для набору даних MNIST.
     Ця модель складається з двох конволюційних блоків, після яких йде повнозв'язний шар для класифікації.
+    
     Атрибути:
         conf_blok_1 (nn.Sequential): Перший конволюційний блок.
         conf_blok_2 (nn.Sequential): Другий конволюційний блок.
@@ -15,60 +14,55 @@ class MNISTModelV2(nn.Module):
     def __init__(self, input_shape, hidden_units, output_shape):
         """
         Ініціалізує MNISTModelV2.
+        
         Аргументи:
-            input_shape (int): Кількість вхідних каналів.
-            hidden_units (int): Кількість прихованих одиниць у конволюційних шарах.
-            output_shape (int): Кількість вихідних одиниць (кількість класів).
+            input_shape (int): Кількість вхідних каналів (наприклад, 1 для чорно-білих зображень MNIST).
+            hidden_units (int): Кількість фільтрів у кожному з конволюційних шарів.
+            output_shape (int): Кількість вихідних одиниць (кількість класів, наприклад, 10 для MNIST).
         """
         super().__init__()
 
+        # Перший конволюційний блок
         self.conf_blok_1 = nn.Sequential(
-           nn.Conv2d(in_channels=input_shape, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
-           nn.ReLU(),
-           nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
-           nn.ReLU(),
-           nn.MaxPool2d(kernel_size=2)
-        )
-
-        self.conf_blok_2 = nn.Sequential(
+            # Перший конволюційний шар
+            nn.Conv2d(in_channels=input_shape, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),  # Активаційна функція ReLU
+            # Другий конволюційний шар
             nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
+            nn.ReLU(),  # Активаційна функція ReLU
+            # Пулинговий шар (зменшує розмір зображення вдвічі)
             nn.MaxPool2d(kernel_size=2)
         )
 
+        # Другий конволюційний блок
+        self.conf_blok_2 = nn.Sequential(
+            # Третій конволюційний шар
+            nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),  # Активаційна функція ReLU
+            # Четвертий конволюційний шар
+            nn.Conv2d(in_channels=hidden_units, out_channels=hidden_units, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),  # Активаційна функція ReLU
+            # Пулинговий шар (зменшує розмір зображення ще вдвічі)
+            nn.MaxPool2d(kernel_size=2)
+        )
+
+        # Класифікаційна частина (повнозв'язний шар)
         self.classifier = nn.Sequential(
-           nn.Flatten(),
-           nn.Linear(in_features=hidden_units*7*7, out_features=output_shape),  
+            nn.Flatten(),  # Перетворює тензор з розмірності (N, C, H, W) у (N, C*H*W)
+            nn.Linear(in_features=hidden_units * 7 * 7, out_features=output_shape),  # Лінійний шар для класифікації
         )
     
     def forward(self, x):
         """
-        Визначає прямий прохід моделі.
+        Виконує пряме проходження (forward pass) через модель.
+        
         Аргументи:
-            x (torch.Tensor): Вхідний тензор.
+            x (torch.Tensor): Вхідний тензор з розмірністю (batch_size, channels, height, width).
+        
         Повертає:
-            torch.Tensor: Вихідний тензор після проходження через модель.
+            torch.Tensor: Вихід моделі (ймовірності або логіти для кожного класу).
         """
-        x = self.conf_blok_1(x)
-        # print(f"Shape after conf_blok_1: {x.shape}")
-        x = self.conf_blok_2(x)
-        # print(f"Shape after conf_blok_2: {x.shape}")
-        x = self.classifier(x)
-        # print(f"Shape after classifier: {x.shape}")
+        x = self.conf_blok_1(x)  # Пропускаємо дані через перший конволюційний блок
+        x = self.conf_blok_2(x)  # Пропускаємо дані через другий конволюційний блок
+        x = self.classifier(x)   # Пропускаємо через класифікаційний шар
         return x
-
-torch.manual_seed(42)
-model = MNISTModelV2(
-    input_shape=1,
-    hidden_units=10,
-    output_shape=len(class_names)
-)
-
-loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-
-train_and_test_model(model, train_dataloader, test_dataloader, loss_fn, optimizer, epochs=3)
-
-model_results = eval_model(model, test_dataloader, loss_fn)

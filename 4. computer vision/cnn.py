@@ -1,7 +1,7 @@
 
 import torch
 
-images = torch.rand(32, 3, 64, 64)
+images = torch.rand(32, 1, 28, 28)
 test_image=images[0]
 print(f"Shape of the batch of images: {images.shape}")
 print(f"Shape of the single image: {test_image.shape}")
