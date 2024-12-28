@@ -1,75 +1,117 @@
-from torch import nn
-import torch
-from data import class_names,train_dataloader, test_dataloader
-from helper_function import accuracy_fn
-from tqdm.auto import tqdm
+from torch import nn   
+import torch 
+from data import class_names, train_dataloader, test_dataloader  
+from helper_function import accuracy_fn  
+from tqdm.auto import tqdm 
 
-
+# Створення класу моделі для класифікації зображень (MNIST)
 class MNISTModelV0(nn.Module):
-    def __init__(self, input_shape, hidden_units,output_shape):
+    # Ініціалізація моделі: визначаємо шари
+    # input_shape: кількість ознак на вхід (28x28=784)
+    # hidden_units: кількість одиниць у прихованому шарі
+    # output_shape: кількість класів (для MNIST це 10 класів)
+    def __init__(self, input_shape, hidden_units, output_shape):
         super().__init__()
 
+        # Стек шарів моделі
         self.layer_stack = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(in_features=input_shape, out_features=hidden_units),
-            nn.Linear(in_features=hidden_units, out_features=output_shape)
+            nn.Flatten(),  # Перетворюємо 2D зображення у 1D вектор (28x28 → 784)
+            nn.Linear(in_features=input_shape, out_features=hidden_units),  # Лінійний шар від входу до прихованого
+            nn.Linear(in_features=hidden_units, out_features=output_shape)  # Лінійний шар від прихованого до виходу
         )
     
+    # Функція forward: визначає шлях проходження даних через модель
     def forward(self, x):
        return self.layer_stack(x)
 
+# Встановлюємо початкове значення для випадкових чисел (для відтворюваності)
 torch.manual_seed(42)
 
+# Створюємо модель з вказаними параметрами: вхід, приховані шари, вихід
 model = MNISTModelV0(
-    input_shape=28*28,
-    hidden_units=10,
-    output_shape=len(class_names)
+    input_shape=28*28,  # Розмір вхідних зображень
+    hidden_units=10,  # Кількість одиниць у прихованому шарі
+    output_shape=len(class_names)  # Кількість класів (наприклад, 10 для MNIST)
 )
 
+# Визначення функції втрат для класифікації (крос-ентропія)
 loss_fn = nn.CrossEntropyLoss()
+
+# Опис оптимізатора (SGD — стохастичний градієнтний спуск)
 optimizer = torch.optim.SGD(params=model.parameters(), lr=0.1)
 
+# Встановлення кількості епох для тренування
 epochs = 3
 
-for epoch in tqdm(range(epochs)):
-   
-    train_loss = 0
+# Тренування моделі
+for epoch in tqdm(range(epochs)):  # Ітеруємо по кожній епосі
 
-    for batch, (X,y) in enumerate(train_dataloader):
-       model.train()
+    train_loss = 0  # Ініціалізація змінної для накопичення втрат на тренувальних даних
+    # Виводимо змінну для втрат, щоб у кінці кожної епохи оцінити загальний прогрес.
 
-       y_pred = model(X)
+    # Ітерація по батчах тренувальних даних
+    for batch, (X, y) in enumerate(train_dataloader):  
+        # За допомогою `train_dataloader` ми отримуємо батчі (міні-набори даних) для тренування:
+        # `batch` - це індекс поточного батчу, а (X, y) - це зображення (X) та мітки (y) для цього батчу.
 
-       loss = loss_fn(y_pred,y)
+        model.train()  # Перехід моделі в режим тренування
+        # Це дозволяє моделі застосовувати спеціальні процедури, як, наприклад, Dropout, що допомагають у навчанні.
 
-       train_loss += loss 
+        # Прогноз для поточного батчу
+        y_pred = model(X)  # Прогноз від моделі для поточного батчу зображень X.
 
-       optimizer.zero_grad()
+        # Обчислюємо втрати для поточного батчу
+        loss = loss_fn(y_pred, y)  # Використовуємо функцію втрат (наприклад, крос-ентропію) для оцінки якості передбачень.
 
-       loss.backward()
+        # Накоплюємо втрати для тренувальних даних
+        train_loss += loss  # Додаємо втрати цього батчу до загальної суми втрат для цієї епохи.
 
-       optimizer.step()
+        # Очищення попередніх градієнтів
+        optimizer.zero_grad()  # Очищаємо градієнти для того, щоб попередні не впливали на нові обчислення.
 
-       if batch % 400 == 0:
-           print(f"Looked at {batch * len(X)}/{len(train_dataloader.dataset)} samples. ")
+        # Обчислення градієнтів для оновлення ваг
+        loss.backward()  # Обчислюємо градієнти для кожної ваги в моделі за допомогою методу зворотного поширення помилки (backpropagation).
 
-    train_loss /= len(train_dataloader)   
+        # Оновлення ваг за допомогою оптимізатора
+        optimizer.step()  # Оновлюємо ваги моделі з використанням оптимізатора, наприклад, SGD.
 
-    test_loss, test_acc = 0,0
-    model.eval()
+        # Кожні 400 батчів виводимо прогрес
+        if batch % 400 == 0:
+            # Показуємо прогрес кожні 400 батчів, щоб відстежувати навчання на великому наборі даних.
+            print(f"Looked at {batch * len(X)}/{len(train_dataloader.dataset)} samples. ")
+            # Виводимо скільки зразків ми вже обробили за цей час.
 
-    with torch.inference_mode():
+    # Обчислюємо середнє значення втрат на тренувальних даних
+    train_loss /= len(train_dataloader)  # Для кожної епохи виводимо середні втрати, діливши загальні втрати на кількість батчів.
 
-        for X_test,y_test in test_dataloader:
-            test_pred = model(X_test)
+    # Оцінка моделі на тестових даних
+    test_loss, test_acc = 0, 0  # Ініціалізація змінних для зберігання втрат і точності на тестових даних.
+    model.eval()  # Перехід в режим оцінки (це деактивує Dropout і BatchNorm, що важливо для тестування).
 
-            test_loss += loss_fn(test_pred, y_test)
-            test_acc += accuracy_fn(y_true=y_test, y_pred=test_pred.argmax(dim=1))
+    # Без обчислення градієнтів під час оцінки (інференс)
+    with torch.inference_mode():  # Вмикаємо inference mode, щоб зекономити пам'ять і швидше обчислювати результати без потреби зберігати градієнти.
+        # Ітерація по батчах тестових даних
+        for X_test, y_test in test_dataloader:
+            # Ітерація по батчах з тестових даних для оцінки моделі на нових даних (які модель не бачила під час тренування).
+            test_pred = model(X_test)  # Прогноз для тестових зображень.
 
-        test_loss /= len(test_dataloader)
+            # Обчислення втрат для тестових даних
+            test_loss += loss_fn(test_pred, y_test)  # Вираховуємо втрати для тестових прогнозів.
 
-        test_acc /= len(test_dataloader)
-    
-    print(f"\nTrain Loss: {train_loss:.4f} | Test Loss {test_loss:.4f}, Test acc: {test_acc:.4f}")
+            # Обчислення точності на тестових даних
+            test_acc += accuracy_fn(y_true=y_test, y_pred=test_pred.argmax(dim=1))  # Оцінка точності на основі правильності прогнозів.
+
+        # Обчислюємо середні втрати та точність для тесту
+        test_loss /= len(test_dataloader)  # Середні втрати на тестових даних.
+        test_acc /= len(test_dataloader)  # Середня точність на тестових даних.
+
+    # Виведення результатів після кожної епохи
+    print(f"\nTrain Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f}, Test acc: {test_acc:.4f}")
+    # Виводимо результати після кожної епохи: середні тренувальні втрати, тестові втрати і точність на тесті.
 
 
+'''Я використовував модель для класифікації зображень з набору MNIST і 
+виведення правильних міток класів для кожного зображення. Спочатку я тренував модель на тренувальних даних, 
+мінімізуючи втрати за допомогою функції втрат (крос-ентропія) та оптимізатора (SGD). Потім я оцінював її ефективність
+на тестових даних, вимірюючи як втрати, так і точність. Моя мета була коректно класифікувати кожне зображення та визначити 
+його відповідний клас, оптимізуючи параметри моделі через кожну епоху тренування.'''
