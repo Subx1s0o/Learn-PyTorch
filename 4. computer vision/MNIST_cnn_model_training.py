@@ -3,7 +3,7 @@ from pathlib import Path
 from data import  class_names, train_dataloader, test_dataloader
 import torch.nn as nn
 from helps_model import train_and_test_model, eval_model
-from MNIST_cnn_model import MNISTModelV2
+from MNIST_cnn_best_model import MNISTModelV3
 
 # Вибір пристрою для навчання
 
@@ -12,15 +12,15 @@ print(f"Using device: {device}")
 
 # Ініціалізація моделі
 torch.manual_seed(42)
-model = MNISTModelV2(
+model = MNISTModelV3(
     input_shape=1,
-    hidden_units=10,
+    hidden_units=32,
     output_shape=len(class_names)
 ).to(device)  # Переносимо модель на GPU (MPS) або CPU
 
 # Функція втрат та оптимізатор
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 # Переносимо дані на пристрій (MPS або CPU)
 def prepare_dataloader(dataloader, device):
@@ -35,7 +35,7 @@ train_and_test_model(
     test_dataloader=test_dataloader, 
     loss_fn=loss_fn, 
     optimizer=optimizer, 
-    epochs=5,
+    epochs=10,
     device=device
 )
 
